@@ -4,7 +4,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import project_do_an_co_so.BanHuyenLuyen.View_BHL_BXH;
 
 class FlatArrowButton extends JButton {
 
@@ -121,16 +120,8 @@ public class View_BanHuanLuyen {
         homePanel.add(scheduleButton);
 
         JButton rankingButton = createButton("Bảng xếp hạng", 600, 200);
-        rankingButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                // Code xử lý sự kiện cho nút Nhân sự
-                View_BHL_BXH.hien();
-                frame.dispose();
-            }
-        });
         homePanel.add(rankingButton);
-        
+
         JButton trainingButton = createButton("Lịch tập luyện", 200, 300);
         homePanel.add(trainingButton);
 
