@@ -1,12 +1,12 @@
 package project_do_an_co_so;
 
-import project_do_an_co_so.FlatArrowButton;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 class FlatArrowButton extends JButton {
+
     private Image arrowImage;
 
     public FlatArrowButton(String text, ImageIcon icon) {
@@ -15,7 +15,7 @@ class FlatArrowButton extends JButton {
         setContentAreaFilled(false);
         setFocusPainted(false);
         setBorderPainted(false);
-        setForeground(Color.BLACK); // Đặt màu chữ phù hợp với nền mũi tên
+        setForeground(Color.WHITE); // Đặt màu chữ phù hợp với nền mũi tên
         setFont(new Font("Arial", Font.BOLD, 18));
         setHorizontalTextPosition(SwingConstants.CENTER);
         setVerticalTextPosition(SwingConstants.CENTER);
@@ -30,7 +30,7 @@ class FlatArrowButton extends JButton {
         int arrowWidth = getWidth();
         int arrowHeight = getHeight();
         int arrowHeadWidth = arrowHeight / 2;
-        
+
         Polygon arrow = new Polygon();
         arrow.addPoint(0, arrowHeight / 2);
         arrow.addPoint(arrowHeadWidth, 0);
@@ -40,8 +40,8 @@ class FlatArrowButton extends JButton {
         arrow.addPoint(arrowHeadWidth, 3 * arrowHeight / 4);
         arrow.addPoint(arrowHeadWidth, arrowHeight);
         arrow.addPoint(0, arrowHeight / 2);
-        
-        g2.setColor(new Color(210, 180, 140)); // Màu mũi tên
+
+        g2.setColor(new Color(0, 102, 153)); // Màu mũi tên
         g2.fill(arrow);
 
         g2.setColor(Color.BLACK); // Viền mũi tên
@@ -52,18 +52,19 @@ class FlatArrowButton extends JButton {
         int textWidth = fm.stringWidth(getText());
         int textHeight = fm.getAscent();
         int x = (getWidth() - textWidth) / 2 - 6;
-        int y = (getHeight() + textHeight) / 2 - 1 ; // Điều chỉnh y để văn bản nằm chính xác ở giữa
-        
+        int y = (getHeight() + textHeight) / 2 - 1; // Điều chỉnh y để văn bản nằm chính xác ở giữa
+
         g2.setColor(getForeground());
         g2.drawString(getText(), x, y);
-        
+
         g2.dispose();
     }
 }
 
-public class View_BanDieuHanh {
+public class View_BanHuanLuyen {
+
     private static JFrame frame;
-    
+
     public static void hien() {
         frame = new JFrame("Homepage");
         frame.setTitle("Homepage");
@@ -71,7 +72,7 @@ public class View_BanDieuHanh {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setLocationRelativeTo(null);
 
-        JPanel homePanel = createHomePanel();        
+        JPanel homePanel = createHomePanel();
         frame.add(homePanel);
         frame.setVisible(true);
     }
@@ -80,11 +81,11 @@ public class View_BanDieuHanh {
         JPanel homePanel = new JPanel(null);
         homePanel.setBackground(Color.WHITE);
 
-        Font font = new Font("Arial", Font.BOLD, 18);
+        Font font = new Font("Arial", Font.BOLD, 24);
 
         JLabel titleLabel = new JLabel("Homepage");
         titleLabel.setFont(font);
-        titleLabel.setBounds(350, 30, 100, 30);
+        titleLabel.setBounds(350, 30, 200, 50);
         homePanel.add(titleLabel);
 
         // Tạo nút Đăng xuất với hình mũi tên tùy chỉnh
@@ -109,7 +110,7 @@ public class View_BanDieuHanh {
             @Override
             public void actionPerformed(ActionEvent e) {
                 // Code xử lý sự kiện cho nút Nhân sự
-                View_BDH_Nhansu_BDH.set();
+                View_BHL_Nhan_su_BHL.set();
                 frame.dispose();
             }
         });
@@ -120,11 +121,24 @@ public class View_BanDieuHanh {
             @Override
             public void actionPerformed(ActionEvent e) {
                 // Code xử lý sự kiện cho nút Nhân sự
-                View_BDH_LichThiDau.main();
+                View_BHL_LichThiDau.main();
                 frame.dispose();
             }
         });
         homePanel.add(scheduleButton);
+
+        JButton optimizationButton = createButton("Optimize Lineup", 350, 400);
+        optimizationButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                View_Toi_Uu.hien();
+                Window window = SwingUtilities.getWindowAncestor(homePanel);
+                if (window != null) {
+                    window.dispose();
+                }
+            }
+        });
+        homePanel.add(optimizationButton);
 
         return homePanel;
     }
@@ -133,7 +147,16 @@ public class View_BanDieuHanh {
         JButton button = new JButton(text);
         button.setFont(new Font("Arial", Font.BOLD, 18));
         button.setBackground(new Color(144, 238, 144));
-        button.setBounds(x, y, 170, 50); // Tăng chiều rộng nút để hiển thị đủ chữ
+        button.setBounds(x, y, 200, 50); // Tăng chiều rộng nút để hiển thị đủ chữ
         return button;
+    }
+
+    public static void run() {
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                hien();
+            }
+        });
     }
 }

@@ -1,5 +1,7 @@
 package project_do_an_co_so;
 
+import project_do_an_co_so.BackgroundPanel;
+import project_do_an_co_so.View_BanHuanLuyen;
 import javax.swing.*;
 import java.awt.*;
 import java.io.BufferedReader;
@@ -10,44 +12,44 @@ import java.util.Map;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.math.BigInteger;
-import static project_do_an_co_so.View_Toi_Uu.hien;
 
 public class Login extends JFrame {
 
     public static JPanel createLoginPanel() {
         BackgroundPanel backgroundPanel = new BackgroundPanel("src/project_do_an_co_so/Image/background.png");
 
-        // Tạo bảng điều khiển cho biểu mẫu đăng nhập
+        // Create the panel for the login form
         JPanel loginPanel = new JPanel();
-        loginPanel.setOpaque(false); // Đặt nền trong suốt
+        loginPanel.setOpaque(false); // Set background to transparent
         loginPanel.setLayout(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(10, 10, 10, 10);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        // Tạo các thành phần cho biểu mẫu đăng nhập
-        Font font = new Font("Arial", Font.BOLD, 14);
+        // Create components for the login form
+        Font font = new Font("Arial", Font.BOLD, 16);
+        Color highlightColor = new Color(255, 255, 255); // Highlight color
 
-        JLabel roleLabel = new JLabel("Chọn vai trò ");
+        JLabel roleLabel = new JLabel("Role:");
         roleLabel.setFont(font);
-        roleLabel.setForeground(Color.BLACK);
+        roleLabel.setForeground(highlightColor);
         gbc.gridx = 0;
         gbc.gridy = 0;
-        gbc.gridwidth = 2;
+        gbc.gridwidth = 1; // Change to 1 to place components on the same line
         loginPanel.add(roleLabel, gbc);
 
-        String[] roles = { "Ban điều hành", "Ban huấn luyện", "Y tế", "Cầu thủ" };
+        String[] roles = {"Manager", "Coach", "Player"};
         JComboBox<String> roleComboBox = new JComboBox<>(roles);
         roleComboBox.setFont(font);
-        roleComboBox.setSelectedIndex(-1);
-        gbc.gridy++;
+        roleComboBox.setPreferredSize(new Dimension(150, 25)); // Set a shorter width
+        gbc.gridx = 1;
         loginPanel.add(roleComboBox, gbc);
 
-        JLabel userLabel = new JLabel("Nhập tài khoản");
+        JLabel userLabel = new JLabel("Username:");
         userLabel.setFont(font);
-        userLabel.setForeground(Color.BLACK);
+        userLabel.setForeground(highlightColor);
+        gbc.gridx = 0;
         gbc.gridy++;
-        gbc.gridwidth = 1;
         loginPanel.add(userLabel, gbc);
 
         JTextField userField = new JTextField(15);
@@ -55,9 +57,9 @@ public class Login extends JFrame {
         gbc.gridx = 1;
         loginPanel.add(userField, gbc);
 
-        JLabel passLabel = new JLabel("Nhập mật khẩu");
+        JLabel passLabel = new JLabel("Password:");
         passLabel.setFont(font);
-        passLabel.setForeground(Color.BLACK);
+        passLabel.setForeground(highlightColor);
         gbc.gridx = 0;
         gbc.gridy++;
         loginPanel.add(passLabel, gbc);
@@ -67,7 +69,7 @@ public class Login extends JFrame {
         gbc.gridx = 1;
         loginPanel.add(passField, gbc);
 
-        JButton loginButton = new JButton("Nút Đăng nhập");
+        JButton loginButton = new JButton("Login");
         loginButton.setFont(font);
         loginButton.setBackground(new Color(33, 150, 243));
         loginButton.setForeground(Color.WHITE);
@@ -81,45 +83,61 @@ public class Login extends JFrame {
             String role = (String) roleComboBox.getSelectedItem();
             String formattedUsername = username;
             String md5Password = getMD5(password);
-            Map<String, String> playerData = loadPlayerData("src/project_do_an_co_so/CSV/Data.csv");
+            Map<Map<String, String>, Player> playerData = loadPlayerData("src/project_do_an_co_so/CSV/Data.csv");
 
-            if ("minhduy".equals(username) && "123".equals(password) && "Ban điều hành".equals(role)) {
-                // Login successful
+            Map<String, String> mp = new HashMap<>();
+            mp.put(formattedUsername, md5Password);
+
+            /*System.out.println("Attempting login with username: " + username + " and password: " + password);
+            System.out.println("MD5 Password: " + md5Password);
+            System.out.println("Role: " + role);
+
+            // Print mp for verification
+            System.out.println("User input map: " + mp);
+
+            // Print playerData for verification
+            for (Map.Entry<Map<String, String>, Player> entry : playerData.entrySet()) {
+                System.out.println("Player data map: " + entry.getKey() + ", Player: " + entry.getValue());
+            }*/
+
+            if ("minhduy".equals(username) && "202cb962ac59075b964b07152d234b70".equals(getMD5(password)) && "Manager".equals(role)) {
                 View_BanDieuHanh.hien();
                 Window window = SwingUtilities.getWindowAncestor(loginPanel);
                 if (window != null) {
                     window.dispose();
                 }
-            } else if ("minhduy".equals(username) && "123".equals(password) && "Ban huấn luyện".equals(role)) {
+            } else if ("minhduy".equals(username) && "202cb962ac59075b964b07152d234b70".equals(getMD5(password)) && "Coach".equals(role)) {
                 View_BanHuanLuyen.hien();
                 Window window = SwingUtilities.getWindowAncestor(loginPanel);
                 if (window != null) {
                     window.dispose();
                 }
-            } else if ("Cầu thủ".equals(role)) {
-                // Load player data from the CSV file
-
-                if (playerData.containsKey(formattedUsername) && playerData.get(formattedUsername).equals(md5Password)) {
-                    // Login successful
-                    View_BanDieuHanh.hien();
+            } else if ("Player".equals(role)) {
+                if (playerData.containsKey(mp)) {
+                    System.out.println("Player found");
+                    Player x = playerData.get(mp);
+                    View_Cau_Thu_1minh z = new View_Cau_Thu_1minh();
+                    z.set(x);
                     Window window = SwingUtilities.getWindowAncestor(loginPanel);
                     if (window != null) {
                         window.dispose();
                     }
                 } else {
-                    JOptionPane.showMessageDialog(null, "Thông tin đăng nhập không chính xác", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(null, "Wrong information", "Error", JOptionPane.ERROR_MESSAGE);
                 }
             } else {
-                JOptionPane.showMessageDialog(null, "Thông tin đăng nhập không chính xác", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(null, "Wrong information", "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
 
-        // Thêm bảng điều khiển vào backgroundPanel
-        backgroundPanel.add(loginPanel, gbc);                     
+        // Add the login panel to the background panel
+        backgroundPanel.add(loginPanel, gbc);
         return backgroundPanel;
     }
-    public static Map<String, String> loadPlayerData(String filePath) {
-        Map<String, String> playerData = new HashMap<>();
+
+    public static Map<Map<String, String>, Player> loadPlayerData(String filePath) {
+        Map<Map<String, String>, Player> playerData = new HashMap<>();
+
         try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
             String line;
             br.readLine();
@@ -127,18 +145,33 @@ public class Login extends JFrame {
                 String[] values = line.split(",");
                 if (values.length >= 2 && !values[0].isEmpty() && !values[values.length - 1].isEmpty()) {
                     String playerName = values[0].replace(" ", "");
-                    String md5Password = values[values.length - 1];
-                    playerData.put(playerName, md5Password);
+                    String md5Password = values[8];
+
+                    Map<String, String> bm = new HashMap<>();
+                    bm.put(playerName, md5Password); // Store username and password
+
+                    // Load player data
+                    String name = values[0];
+                    String hometown = values[1];
+                    String birthDate = values[2];
+                    String numberShirt = values[3];
+                    String position = values[4];
+                    String weight = values[5];
+                    String height = values[6];
+                    String bodyMass = values[7];
+
+                    Player pr = new Player(name, hometown, birthDate, numberShirt, position, weight, height, bodyMass, md5Password);
+
+                    playerData.put(bm, pr);
                 }
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
-
         // Print the player data for verification
-        for (Map.Entry<String, String> entry : playerData.entrySet()) {
+        /*for (Map.Entry<Map<String, String>, Player> entry : playerData.entrySet()) {
             System.out.println("Player: " + entry.getKey() + ", MD5 Password: " + entry.getValue());
-        }
+        }*/
 
         return playerData;
     }
@@ -158,6 +191,7 @@ public class Login extends JFrame {
             throw new RuntimeException(e);
         }
     }
+
     public static void Hien() {
         try {
             // Set a modern look and feel
@@ -179,11 +213,12 @@ public class Login extends JFrame {
 }
 
 class BackgroundPanel extends JPanel {
+
     private final Image backgroundImage;
 
     public BackgroundPanel(String fileName) {
         backgroundImage = new ImageIcon(fileName).getImage();
-        setLayout(new GridBagLayout()); // Sử dụng GridBagLayout để căn chỉnh các thành phần
+        setLayout(new GridBagLayout()); // Use GridBagLayout for component alignment
     }
 
     @Override
@@ -192,4 +227,3 @@ class BackgroundPanel extends JPanel {
         g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
     }
 }
-

@@ -1,183 +1,235 @@
 package project_do_an_co_so;
 
-import project_do_an_co_so.BanHuyenLuyen.View_Nhansu_1DoiTuong;
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.io.BufferedReader;
+import java.awt.event.*;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import javax.swing.text.JTextComponent;
+import project_do_an_co_so.BanDieuHanh.Controller_BDH_Nhansu_BDH;
+import project_do_an_co_so.BanDieuHanh.View_Chon_Loc_1Cauthu;
+import project_do_an_co_so.Controller_Nhansu_1DoiTuong;
 
 public class View_BDH_Nhansu_BDH {
 
     private static JFrame frame;
     private static DefaultTableModel tableModel;
     private static final ArrayList<Player> playerList = new ArrayList<>();
+    private static final ArrayList<Player> displayedPlayers = new ArrayList<>();
     private static String url;
-
-    public static void save2(String filePath, ArrayList<Player> playerList1) {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath, false))) {
-            // Ghi dữ liệu của từng cầu thủ vào file CSV
-            for (Player player : playerList1) {
-                writer.newLine();
-                writer.write(player.getName() + "," + player.getHometown() + "," + player.getBirthDate() + "," + player.getNumberShirt() + ","
-                        + player.getPosition() + "," + player.getWeight() + "," + player.getHeight() + "," + player.getBodyMass());
-                writer.newLine();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    } 
-    public static void save3(String filePath, ArrayList<Player> playerList1) {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath, true))) {
-            // Ghi dữ liệu của từng cầu thủ vào file CSV
-            for (Player player : playerList1) {
-                System.out.println(player.toString());
-                writer.newLine();
-                writer.write(player.getName() + "," + player.getHometown() + "," + player.getBirthDate() + "," + player.getNumberShirt() + ","
-                        + player.getPosition() + "," + player.getWeight() + "," + player.getHeight() + "," + player.getBodyMass());
-                writer.newLine();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
+    private static final Ngoaile x = new Ngoaile();
+    private static JTextField searchField;
 
     public static void chon(JTable table, ArrayList<Player> playerList) {
         int selectedRow = table.getSelectedRow();
         if (selectedRow >= 0) {
-            Player selectedPlayer = playerList.get(selectedRow);
+            Player selectedPlayer = displayedPlayers.get(selectedRow);
             View_Nhansu_1DoiTuong view = new View_Nhansu_1DoiTuong();
-            view.set(selectedRow, selectedPlayer, table, tableModel, playerList);
+            view.set(playerList.indexOf(selectedPlayer), selectedPlayer, table, tableModel, playerList);
             frame.dispose();
         } else {
-            JOptionPane.showMessageDialog(frame, "Chọn một đối tượng.");
+            JOptionPane.showMessageDialog(frame, "Choose a player");
         }
     }
 
-    public static void load(String x) {
-        JFileChooser fileChooser = new JFileChooser(x);
-        int returnValue = fileChooser.showOpenDialog(null);
-        if (returnValue == JFileChooser.APPROVE_OPTION) {
-            File selectedFile = fileChooser.getSelectedFile();
-            String filePath = selectedFile.getAbsolutePath(); // Lấy đường dẫn tuyệt đối của file
-            url = filePath;
-            loadCSV(selectedFile);
-        }
-    }
-
-    public static void load2(String x) {
-        File file = new File("src/project_do_an_co_so/CSV/Data.csv");
-        if (file.exists() && !file.isDirectory()) {
-            // Nếu đường dẫn x là hợp lệ và không phải là một thư mục
-            loadCSV(file);
+    public static void chon2(JTable table, ArrayList<Player> playerList) {
+        int selectedRow = table.getSelectedRow();
+        if (selectedRow >= 0) {
+            Player selectedPlayer = displayedPlayers.get(selectedRow); // Sử dụng displayedPlayers để lấy cầu thủ được
+            // chọn
+            View_Chon_Loc_1Cauthu view = new View_Chon_Loc_1Cauthu();
+            view.set(playerList.indexOf(selectedPlayer), selectedPlayer, table, tableModel, playerList);
+            frame.dispose();
         } else {
-            System.out.println("Đường dẫn không hợp lệ hoặc không tồn tại: " + x);
+            JOptionPane.showMessageDialog(frame, "Choose a player");
         }
     }
 
-    private static void openAddPlayerForm() {
+    public static void openAddPlayerForm() {
         // Tạo một form mới để nhập thuộc tính cầu thủ
-        JDialog addPlayerDialog = new JDialog(frame, "Thêm cầu thủ mới", true);
-        addPlayerDialog.setSize(300, 500);
-        addPlayerDialog.setLayout(new BoxLayout(addPlayerDialog.getContentPane(), BoxLayout.Y_AXIS));
+        JDialog addPlayerDialog = new JDialog(frame, "Add a new player", true);
+        addPlayerDialog.setSize(400, 600);
+        addPlayerDialog.setLayout(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
 
         // Tạo các trường nhập liệu cho thuộc tính cầu thủ
         JTextField nameField = new JTextField(20);
-        JTextField hometownField = new JTextField(20);
-        JTextField birthDateField = new JTextField(20);
+        JComboBox<String> hometownComboBox = new JComboBox<>(x.getCountries());
+        hometownComboBox.setEditable(true);
+        JTextComponent editor = (JTextComponent) hometownComboBox.getEditor().getEditorComponent();
+        editor.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyReleased(KeyEvent e) {
+                SwingUtilities.invokeLater(() -> x.autoComplete(hometownComboBox, editor.getText()));
+            }
+        });
+
+        JPanel dobPanel = x.createDobPanel(); // Tạo panel chứa 3 JComboBox cho ngày tháng năm
+
         JTextField numberShirtField = new JTextField(20);
-        JTextField positionField = new JTextField(20);
+        JButton positionButton = new JButton("Select Positions"); // Nút mở dialog chọn vị trí
         JTextField weightField = new JTextField(20);
         JTextField heightField = new JTextField(20);
-        JTextField bodyMassField = new JTextField(20);
+
+        // Tạo JComboBox cho phần nhập chân thuận
+        JComboBox<String> dominantFootComboBox = new JComboBox<>(new String[]{"Left", "Right", "Both"});
 
         // Thêm các trường nhập liệu vào dialog
-        addPlayerDialog.add(new JLabel("Tên:"));
-        addPlayerDialog.add(nameField);
-        addPlayerDialog.add(new JLabel("Quê quán:"));
-        addPlayerDialog.add(hometownField);
-        addPlayerDialog.add(new JLabel("Ngày sinh:"));
-        addPlayerDialog.add(birthDateField);
-        addPlayerDialog.add(new JLabel("Số áo:"));
-        addPlayerDialog.add(numberShirtField);
-        addPlayerDialog.add(new JLabel("Vị trí:"));
-        addPlayerDialog.add(positionField);
-        addPlayerDialog.add(new JLabel("Cân nặng:"));
-        addPlayerDialog.add(weightField);
-        addPlayerDialog.add(new JLabel("Chiều cao:"));
-        addPlayerDialog.add(heightField);
-        addPlayerDialog.add(new JLabel("Chỉ số cơ thể:"));
-        addPlayerDialog.add(bodyMassField);
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        addPlayerDialog.add(new JLabel("Name:"), gbc);
+        gbc.gridx = 1;
+        gbc.gridy = 0;
+        addPlayerDialog.add(nameField, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        addPlayerDialog.add(new JLabel("Nation:"), gbc);
+        gbc.gridx = 1;
+        gbc.gridy = 1;
+        addPlayerDialog.add(hometownComboBox, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        addPlayerDialog.add(new JLabel("DoB:"), gbc);
+        gbc.gridx = 1;
+        gbc.gridy = 2;
+        addPlayerDialog.add(dobPanel, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        addPlayerDialog.add(new JLabel("Number:"), gbc);
+        gbc.gridx = 1;
+        gbc.gridy = 3;
+        addPlayerDialog.add(numberShirtField, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 4;
+        addPlayerDialog.add(new JLabel("Positions:"), gbc);
+        gbc.gridx = 1;
+        gbc.gridy = 4;
+        addPlayerDialog.add(positionButton, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 5;
+        addPlayerDialog.add(new JLabel("Weight:"), gbc);
+        gbc.gridx = 1;
+        gbc.gridy = 5;
+        addPlayerDialog.add(weightField, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 6;
+        addPlayerDialog.add(new JLabel("Height:"), gbc);
+        gbc.gridx = 1;
+        gbc.gridy = 6;
+        addPlayerDialog.add(heightField, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 7;
+        addPlayerDialog.add(new JLabel("Dominant foot:"), gbc);
+        gbc.gridx = 1;
+        gbc.gridy = 7;
+        addPlayerDialog.add(dominantFootComboBox, gbc);
+
+        // Action listener cho nút positionButton để mở dialog chọn vị trí
+        positionButton.addActionListener(e -> {
+            String selectedPositions = x.openPositionSelectionDialog(positionButton, addPlayerDialog);
+            if (selectedPositions != null && !selectedPositions.isEmpty()) {
+                positionButton.setText(selectedPositions); // Cập nhật tên nút
+            }
+        });
 
         // Thêm nút lưu cầu thủ
-        JButton saveButton = new JButton("Lưu");
+        JButton saveButton = new JButton("Save");
+        styleButton(saveButton);
         saveButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 // Lấy dữ liệu từ các trường nhập liệu
-                String name = nameField.getText();
-                String hometown = hometownField.getText();
-                String birthDate = birthDateField.getText();
+                String name = x.normalizeName(nameField.getText());
+                String hometown = hometownComboBox.getSelectedItem() != null
+                        ? hometownComboBox.getSelectedItem().toString()
+                        : "";
+                String birthDate = x.getDobFromComboBoxes(dobPanel);
                 String numberShirt = numberShirtField.getText();
-                String position = positionField.getText();
+                String position = positionButton.getText();
                 String weight = weightField.getText();
                 String height = heightField.getText();
-                String bodyMass = bodyMassField.getText();
+                String bodyMass = dominantFootComboBox.getSelectedItem().toString();
+                String password = "dd4b21e9ef71e1291183a46b913ae6f2";
 
                 // Kiểm tra xem tên có được nhập hay không
-                if (!name.trim().isEmpty()) {
-                    // Thêm dữ liệu vào bảng
-                    tableModel.addRow(new Object[]{name});
-
-                    // Lưu dữ liệu vào file CSV
-                    savePlayerToCSV(name, hometown, birthDate, numberShirt, position, weight, height, bodyMass);
-
-                    // Đóng dialog
-                    addPlayerDialog.dispose();
-                    frame.dispose();
-                    View_BDH_Nhansu_BDH.hien();
-                    load2("src/project_do_an_co_so/CSV/Data.csv");
-                } else {
-                    JOptionPane.showMessageDialog(frame, "Vui lòng nhập tên cầu thủ.");
+                if (name.trim().isEmpty()) {
+                    JOptionPane.showMessageDialog(frame, "Write the player's name");
+                    return;
                 }
+
+                // Kiểm tra xem vị trí có được nhập hay không
+                if (position.equals("Select Positions")) {
+                    JOptionPane.showMessageDialog(frame, "Select at least one position");
+                    return;
+                }
+
+                // Kiểm tra xem số áo, chiều cao và cân nặng có phải là số tự nhiên hay không
+                if (!Controller_BDH_Nhansu_BDH.isNaturalNumber(numberShirt)
+                        || !Controller_BDH_Nhansu_BDH.isNaturalNumber(weight)
+                        || !Controller_BDH_Nhansu_BDH.isNaturalNumber(height)) {
+                    JOptionPane.showMessageDialog(frame, "Number, weight and height must be natural numbers");
+                    return;
+                }
+
+                // Thêm dữ liệu vào bảng
+                Player newPlayer = new Player(name, hometown, birthDate, numberShirt, position, weight, height,
+                        bodyMass, password);
+                playerList.add(newPlayer);
+                displayedPlayers.add(newPlayer);
+                tableModel.addRow(new Object[]{name});
+
+                // Lưu dữ liệu vào file CSV
+                savePlayerToCSV(name, hometown, birthDate, numberShirt, position, weight, height, bodyMass, password);
+
+                // Đóng dialog
+                addPlayerDialog.dispose();
+                frame.dispose();
+                View_BDH_Nhansu_BDH.hien();
+                Controller_BDH_Nhansu_BDH.load2("src/project_do_an_co_so/CSV/Data.csv", playerList, displayedPlayers,
+                        tableModel);
             }
         });
-        addPlayerDialog.add(saveButton);
+        gbc.gridx = 0;
+        gbc.gridy = 8;
+        gbc.gridwidth = 2;
+        addPlayerDialog.add(saveButton, gbc);
 
         // Hiển thị dialog
+        addPlayerDialog.setLocationRelativeTo(null);
         addPlayerDialog.setVisible(true);
-        }
+    }
 
     // Hàm lưu dữ liệu vào file CSV, được khai báo bên ngoài phương thức createPanel
-    private static void savePlayerToCSV(String name, String hometown, String birthDate, String numberShirt,
-            String position, String weight, String height, String bodyMass) {
-        // Mở hộp thoại cho người dùng chọn nơi lưu file CSV
-        //JFileChooser fileChooser = new JFileChooser("src/project_do_an_co_so/CSV/Data.csv");
-        //fileChooser.setDialogTitle("Lưu file CSV");
-        //int userSelection = fileChooser.showSaveDialog(frame);
-
-        //if (userSelection == JFileChooser.APPROVE_OPTION) {
-            //File fileToSave = fileChooser.getSelectedFile();
-            File fileToSave = new File("src/project_do_an_co_so/CSV/Data.csv");
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileToSave, true))) {
-                writer.write(name + "," + hometown + "," + birthDate + "," + numberShirt + "," + position + "," + weight
-                        + "," + height + "," + bodyMass);
-                writer.newLine();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        //}
+    public static void savePlayerToCSV(String name, String hometown, String birthDate, String numberShirt,
+            String position, String weight, String height, String bodyMass, String password) {
+        File fileToSave = new File("src/project_do_an_co_so/CSV/Data.csv");
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileToSave, true))) {
+            writer.newLine();
+            writer.write(name + "," + hometown + "," + birthDate + "," + numberShirt + "," + position + "," + weight
+                    + "," + height + "," + bodyMass + "," + password);
+            writer.newLine();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public static void hien() {
-        frame = new JFrame("Nhân sự");
+        frame = new JFrame("Player");
         frame.setSize(900, 600);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setLocationRelativeTo(null);
@@ -188,27 +240,50 @@ public class View_BDH_Nhansu_BDH {
     }
 
     public static JPanel createPanel() {
-        JPanel panel = new JPanel();
+        JPanel panel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                ImageIcon icon = new ImageIcon("src/project_do_an_co_so/Image/BG1.png");
+                Image image = icon.getImage();
+                g.drawImage(image, 0, 0, getWidth(), getHeight(), this);
+            }
+        };
         panel.setLayout(null);
-        panel.setBackground(Color.WHITE);
-
-        JLabel titleLabel = new JLabel("Nhân sự - 1 nhóm đối tượng");
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
-        titleLabel.setBounds(250, 20, 400, 30);
-        panel.add(titleLabel);
 
         // Create table
-        String[] columnNames = {"Tên"};
+        String[] columnNames = {"Name"};
         tableModel = new DefaultTableModel(columnNames, 0);
         JTable table = new JTable(tableModel);
         JScrollPane scrollPane = new JScrollPane(table);
-        scrollPane.setBounds(100, 100, 600, 200);
+        scrollPane.setBounds(150, 100, 600, 200);
         panel.add(scrollPane);
 
+        // Add search field
+        searchField = new JTextField(20);
+        searchField.setBounds(150, 60, 200, 30);
+        searchField.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                filterTable();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                filterTable();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                filterTable();
+            }
+        });
+        panel.add(searchField);
+
         // Add "Thêm" button
-        JButton addButton = new JButton("Nút Thêm");
-        addButton.setFont(new Font("Arial", Font.BOLD, 18));
-        addButton.setBackground(new Color(255, 182, 193));
+        JButton addButton = new JButton("Add");
+        Controller_Nhansu_1DoiTuong.styleButton(addButton);
+        styleButton(addButton);
         addButton.setBounds(50, 350, 120, 50);
         addButton.addActionListener(new ActionListener() {
             @Override
@@ -219,49 +294,50 @@ public class View_BDH_Nhansu_BDH {
         panel.add(addButton);
 
         // Add "Xóa" button
-        JButton deleteButton = new JButton("Nút Xóa");
-        deleteButton.setFont(new Font("Arial", Font.BOLD, 18));
-        deleteButton.setBackground(new Color(255, 182, 193));
+        JButton deleteButton = new JButton("Delete");
+        styleButton(deleteButton);
         deleteButton.setBounds(200, 350, 120, 50);
         deleteButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 int selectedRow = table.getSelectedRow();
                 if (selectedRow >= 0) {
-                    int confirm = JOptionPane.showConfirmDialog(frame, "Bạn có chắc chắn muốn xóa cầu thủ này?", "Xác nhận xóa", JOptionPane.YES_NO_OPTION);
+                    int confirm = JOptionPane.showConfirmDialog(frame, "Do you want to delete this player?", "Delete",
+                            JOptionPane.YES_NO_OPTION);
                     if (confirm == JOptionPane.YES_OPTION) {
-                        playerList.remove(selectedRow);
+                        Player selectedPlayer = displayedPlayers.get(selectedRow);
+                        playerList.remove(selectedPlayer);
+                        displayedPlayers.remove(selectedPlayer);
                         tableModel.removeRow(selectedRow);
 
                         // Gọi hàm save2 để lưu danh sách cầu thủ sau khi xóa
-                        save3("src/project_do_an_co_so/CSV/Data.csv", playerList);
+                        Controller_Nhansu_1DoiTuong.clearCSVFile("src/project_do_an_co_so/CSV/Data.csv");
+                        Controller_BDH_Nhansu_BDH.save("src/project_do_an_co_so/CSV/Data.csv", playerList);
                     }
                 } else {
-                    JOptionPane.showMessageDialog(frame, "Chọn một đối tượng để xóa.");
+                    JOptionPane.showMessageDialog(frame, "Choose a player to delete");
                 }
             }
         });
-
         panel.add(deleteButton);
 
         // Add "Chọn" button
-        JButton selectButton = new JButton("Nút Chọn");
-        selectButton.setFont(new Font("Arial", Font.BOLD, 18));
-        selectButton.setBackground(new Color(255, 182, 193));
+        JButton selectButton = new JButton("Choose");
+        
+        styleButton(selectButton);
         selectButton.setBounds(350, 350, 120, 50);
         selectButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                chon(table, playerList );
+                chon(table, playerList);
             }
         });
         panel.add(selectButton);
 
         // Add "Back" button
-        JButton backButton = new JButton("Nút Back");
-        backButton.setFont(new Font("Arial", Font.BOLD, 18));
-        backButton.setBackground(new Color(255, 182, 193));
-        backButton.setBounds(500, 350, 120, 50);
+        JButton backButton = new JButton("Back");
+        styleButton(backButton);
+        backButton.setBounds(650, 450, 120, 50);
         backButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -272,53 +348,35 @@ public class View_BDH_Nhansu_BDH {
         panel.add(backButton);
 
         // Nút up csv
-        JButton loadCsvButton = new JButton("Cập nhật");
-        loadCsvButton.setFont(new Font("Arial", Font.BOLD, 18));
-        loadCsvButton.setBackground(new Color(255, 182, 193));
-        loadCsvButton.setBounds(650, 350, 150, 50);
+        JButton loadCsvButton = new JButton("Update");
+        styleButton(loadCsvButton);
+        loadCsvButton.setBounds(650, 350, 120, 50);
         loadCsvButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                load2("src/project_do_an_co_so/CSV");
+                up();
             }
         });
         panel.add(loadCsvButton);
 
+        // Add "Filter" button
+        JButton filterButton = new JButton("Filter");
+        styleButton(filterButton);
+        filterButton.setBounds(500, 350, 120, 50);
+        filterButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Controller_BDH_Nhansu_BDH.openFilterDialog(1, x, frame);
+            }
+        });
+        panel.add(filterButton);
+
         return panel;
     }
 
-    private static void loadCSV(File file) {
-        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
-            String line;
-            // Clear the previous list
-            playerList.clear();
-            tableModel.setRowCount(0);
-
-            // Read the header
-            br.readLine();
-
-            while ((line = br.readLine()) != null) {
-                String[] values = line.split(",");
-                if (values.length < 5) {
-                    continue; // Skip if there are not enough values
-                }
-
-                String name = values[0];
-                String hometown = values[1];
-                String birthDate = values[2];
-                String numberShirt = values[3];
-                String position = values[4];
-                String weight = values[5];
-                String height = values[6];
-                String bodyMass = values[7];
-
-                Player player = new Player(name, hometown, birthDate, numberShirt, position, weight, height, bodyMass);
-                playerList.add(player);
-                tableModel.addRow(new Object[]{name});
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    public static void up() {
+        Controller_BDH_Nhansu_BDH.load2("src/project_do_an_co_so/CSV/Data.csv", playerList, displayedPlayers,
+                tableModel);
     }
 
     public static void set() {
@@ -329,5 +387,93 @@ public class View_BDH_Nhansu_BDH {
             }
         });
     }
-}
 
+    private static String a, b, c, d, k, g;
+
+    public static void backk() {
+        filterPlayers(a, b, c, d, k, g);
+    }
+
+    public static void filterPlayers(String minWeight, String maxWeight, String minHeight, String maxHeight,
+            String position, String hometown) {
+        a = minWeight;
+        b = maxWeight;
+        c = minHeight;
+        d = maxHeight;
+        k = position;
+        g = hometown;
+
+        displayedPlayers.clear(); // Clear the displayedPlayers list
+
+        for (Player player : playerList) {
+            boolean matches = true;
+
+            if (!minWeight.isEmpty() && !maxWeight.isEmpty()) {
+                int weight = Integer.parseInt(player.getWeight());
+                int minW = Integer.parseInt(minWeight);
+                int maxW = Integer.parseInt(maxWeight);
+                if (weight < minW || weight > maxW) {
+                    matches = false;
+                }
+            }
+
+            if (!minHeight.isEmpty() && !maxHeight.isEmpty()) {
+                int height = Integer.parseInt(player.getHeight());
+                int minH = Integer.parseInt(minHeight);
+                int maxH = Integer.parseInt(maxHeight);
+                if (height < minH || height > maxH) {
+                    matches = false;
+                }
+            }
+
+            if (!position.isEmpty()) {
+                String[] selectedPositions = position.split(",\\s*");
+                boolean positionMatches = false;
+                for (String pos : selectedPositions) {
+                    if (player.getPosition().contains(pos)) {
+                        positionMatches = true;
+                        break;
+                    }
+                }
+                if (!positionMatches) {
+                    matches = false;
+                }
+            }
+
+            if (!hometown.isEmpty() && !player.getHometown().equalsIgnoreCase(hometown)) {
+                matches = false;
+            }
+
+            if (matches) {
+                displayedPlayers.add(player); // Add to displayedPlayers if all conditions are met
+            }
+        }
+
+        Controller_BDH_Nhansu_BDH.showFilteredPlayers(displayedPlayers, playerList, displayedPlayers, tableModel); // Display the filtered players
+    }
+
+    public static void filterTable() {
+        String query = searchField.getText().toLowerCase();
+        displayedPlayers.clear();
+        tableModel.setRowCount(0);
+
+        for (Player player : playerList) {
+            if (player.getName().toLowerCase().contains(query)) {
+                displayedPlayers.add(player);
+                tableModel.addRow(new Object[]{player.getName()});
+            }
+        }
+    }
+
+    public static void styleButton(JButton button) {
+        button.setFont(new Font("Arial", Font.BOLD, 18)); // Set font size to 18
+        button.setPreferredSize(new Dimension(200, 60)); // Increase button size
+        //button.setBackground(new Color(34, 139, 34)); // Forest green background color
+        button.setBackground(new Color(255, 0, 0));
+        button.setForeground(Color.WHITE); // White text color
+        button.setFocusPainted(false); // Remove focus paint
+        //button.setBorder(BorderFactory.createLineBorder(new Color(255, 255, 255), 2)); // Add white border
+        //button.setOpaque(true);
+    }
+
+}
